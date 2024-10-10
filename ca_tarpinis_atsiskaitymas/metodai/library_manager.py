@@ -1,6 +1,6 @@
 import pickle
 import os
-from metodai.book import Book
+from ca_tarpinis_atsiskaitymas.metodai.book import Book
 
 class LibraryManager:
     def __init__(self, file_path='ca_tarpinis_atsiskaitymas/data/books.pkl', deleted_file_path='ca_tarpinis_atsiskaitymas/data/deleted_books.pkl'):
