@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./ca_tarpinis_atsiskaitymas",
+        "./ca_tarpinis_atsiskaitymas/metodai"
+    ]
+}
