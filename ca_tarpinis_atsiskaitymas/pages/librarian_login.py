@@ -1,5 +1,5 @@
 import streamlit as st
-from metodai.librarian_data import Librarian
+from classes.librarian_data import Librarian
 from time import sleep
 
 lib_admin = Librarian()

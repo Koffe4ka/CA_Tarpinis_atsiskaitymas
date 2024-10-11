@@ -1,5 +1,6 @@
 class Book:
-    def __init__(self, name, author, genre, release_date, status='laisva', visitor_name=None, start_date=None, days_overdue=None):
+    def __init__(self, name, author, genre, release_date, status='laisva', visitor_name=None, start_date=None, days_overdue=None, id=None):
+        self.id = id
         self.name = name
         self.author = author
         self.genre = genre
@@ -11,6 +12,7 @@ class Book:
 
     def i_sarasa(self):
         return {
+            'id': self.id,
             'name': self.name,
             'author': self.author,
             'genre': self.genre,
@@ -23,6 +25,7 @@ class Book:
 
     def is_saraso(parameter):
         return Book(
+            id=parameter.get('id'),
             name=parameter['name'],
             author=parameter['author'],
             genre=parameter['genre'],
