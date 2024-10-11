@@ -4,13 +4,7 @@ from metodai.book import Book
 from metodai.library_manager import LibraryManager
 from metodai.librarian_data import Librarian
 st.markdown("<style> .stMainBlockContainer {min-width: 1000px; text-align: center;}</style>", unsafe_allow_html=True)
-def main():
-    library_manager = LibraryManager()
-    import pages.librarian as librarian
-    librarian.run(library_manager)
-if __name__ == '__main__':
-    main()
-
+library_manager = LibraryManager()
 lib_admin = Librarian()   
 def run(library_manager):
     st.subheader("Darbuotojo Paskyra", anchor=False)
@@ -126,7 +120,6 @@ def run(library_manager):
         else:
             st.write("Ištrintų knygų sąrašas tuščias")
 
-# st.page_link("main.py", label="Grįžti į pradžią", icon="🏠")
-left_co, cent_co,last_co = st.columns(3)
+run(library_manager)
 if st.button("Atgal į pagrindinį", key="63158617_knvnkvnklankv", icon=":material/undo:"):
-    st.switch_page("main.py")
+        st.switch_page("main.py")
