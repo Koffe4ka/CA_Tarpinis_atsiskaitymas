@@ -10,6 +10,9 @@ class Book:
         self.start_date = start_date
         self.days_overdue = days_overdue
 
+    def __repr__(self):
+        return f"Knyga (id={self.id}, name='{self.name}', author='{self.author}', genre='{self.genre}', release_date='{self.release_date}', status='{self.status}')"
+
     def i_sarasa(self):
         return {
             'id': self.id,

@@ -8,7 +8,7 @@ with cent_co:
     if os.path.exists("ca_tarpinis_atsiskaitymas/assets/logo.jpg"):
         st.image("ca_tarpinis_atsiskaitymas/assets/logo.jpg", caption=None)
     else:
-        st.error("ca_tarpinis_atsiskaitymas/assets/logo.jpg file not found. Please ensure the file is in the correct directory.")
+        st.error("ca_tarpinis_atsiskaitymas/assets/logo.jpg failas nerastas.")
 
 st.title("Sveiki atvykę į Mūsų Biblioteką", anchor=False)
 col1, col2 = st.columns(2)
