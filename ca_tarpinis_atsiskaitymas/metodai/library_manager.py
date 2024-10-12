@@ -134,7 +134,7 @@ class LibraryManager:
             if book.status == 'paimta':
                 loan_duration = (datetime.today() - datetime.strptime(book.start_date, '%Y-%m-%d')).days
                 if loan_duration > 20:
-                    book.status = 'veluojama'
+                    book.status = 'vėluojama'
                     overdue_books.append(book)
         self.save_books()
         return overdue_books

@@ -12,7 +12,7 @@ library_manager = LibraryManager()
 def run(library_manager):
     st.subheader("Darbuotojo Paskyra", anchor=False)
     st.success(f"Sėkmingai prisijungėte {lib_admin.lib_name}")
-    menu = ["Pridėti knygą", "Peržiūrėti visas knygas", "Rasti knygą", "Ištrinti knygą", "Sukurti lankytojo kortelę", "Priskirti knygą lankytojui", "Peržiūrėti lankytojus"]
+    menu = ["Pridėti knygą", "Peržiūrėti visas knygas", "Rasti knygą", "Ištrinti knygą", "Skaitytojų valdymas", "Priskirti knygą lankytojui"]
     choice = st.selectbox("Pasirinkite veiksmą", menu, index=None, placeholder="Pasirinkite veiksmą...")
     
     if choice == "Pridėti knygą":
@@ -65,10 +65,10 @@ def run(library_manager):
                     color = 'green'
                 elif val == 'paimta':
                     color = 'blue'
-                elif val == 'veluojama':
+                elif val == 'vėluojama':
                     color = 'red'
                 return f'color: {color}'
-            styled_table = df_books.style.applymap(color_status, subset=['Būklė']).set_properties(**{'text-align': 'center'})
+            styled_table = df_books.style.map(color_status, subset=['Būklė']).set_properties(**{'text-align': 'center'})
             st.dataframe(styled_table)
             # st.table(df_books)
         else:
@@ -139,71 +139,81 @@ def run(library_manager):
         else:
             st.write("Ištrintų knygų sąrašas tuščias")
 
-    if choice == "Peržiūrėti lankytojus":
-        st.subheader("Lankytojai", anchor=False)
-        visitors = library_manager.list_visitors()
-
-        if visitors:
-            visitor_data = {
-                "Vardas": [visitor.name for visitor in visitors],
-                "ID": [visitor.visitor_id for visitor in visitors],
-                "Knygos": [', '.join([book.name for book in visitor.books_taken]) if visitor.books_taken else 'Nėra' for visitor in visitors],  # Ensure we are displaying book names
+    if choice == "Skaitytojų valdymas":
+        
+        menu2 = st.radio("Kokį veiksmą norite atlikti?", ["Peržiūrėti skaitytojus", "Sukurti skaitytojo kortelę"])
+        if menu2 == "Peržiūrėti skaitytojus":
+            st.subheader("Skaitytojai", anchor=False)
+            visitors = library_manager.list_visitors()
+            if visitors:
+                visitor_data = {
+                    "Vardas": [visitor.name for visitor in visitors],
+                    "ID": [visitor.visitor_id for visitor in visitors],
+                    "Paimtos knygos": [
+                    ',\n '.join([f"{book.name} ({book.status} {book.start_date})" for book in visitor.books_taken]) if visitor.books_taken else 'Nėra' 
+                    for visitor in visitors
+                ],
             }
-            df_visitors = pd.DataFrame(visitor_data)
-            st.dataframe(df_visitors)
+                df_visitors = pd.DataFrame(visitor_data)
+                st.dataframe(df_visitors)
 
-            # Delete visitor
-            visitor_id_to_delete = st.number_input("Įveskite lankytojo ID, kurį norite ištrinti", min_value=1, step=1)
-            if st.button("Ištrinti lankytoją"):
-                if library_manager.delete_visitor(visitor_id_to_delete):
-                    st.success(f"Lankytojas ID {visitor_id_to_delete} sėkmingai ištrintas.")
-                else:
-                    st.warning("Nepavyko ištrinti lankytojo! Patikrinkite, ar lankytojas turi paskolintų knygų.")
-        else:
-            st.write("Lankytojų sąrašas tuščias.")
-
-
-    elif choice == "Sukurti lankytojo kortelę":
-        st.subheader("Sukurti lankytojo kortelę", anchor=False)
-
-        visitor_name = st.text_input("Lankytojo vardas")
-
-        if st.button("Pridėti lankytoją"):
-            if visitor_name:
-                new_visitor = library_manager.create_visitor(visitor_name)
-                st.success(f"Lankytojas '{visitor_name}' buvo pridėtas su ID {new_visitor.visitor_id}!")
+                # Skaitytojų ištrinimas veikia tik tuo atvėju, kai sąrašas nėra tuščias
+                visitor_id_to_delete = st.number_input("Įveskite skaitytojo ID, kurį norite ištrinti", min_value=1, step=1)
+                if st.button("Ištrinti skaitytoją"):
+                    if library_manager.delete_visitor(visitor_id_to_delete):
+                        st.success(f"Skaitytojas ID {visitor_id_to_delete} sėkmingai ištrintas.")
+                    else:
+                        st.warning("Nepavyko ištrinti skaitytojo! Patikrinkite, ar skaitytojas turi paskolintų knygų.")
             else:
-                st.warning("Visi laukai yra privalomi!")
+                st.write("Skaitytojų sąrašas tuščias.")
+                
+        if menu2 == "Sukurti skaitytojo kortelę":
+            st.subheader("Sukurti skaitytojo kortelę", anchor=False)
 
+            visitor_name = st.text_input("Lankytojo vardas")
 
-    elif choice == "Priskirti knygą lankytojui":
+            if st.button("Pridėti lankytoją"):
+                if visitor_name:
+                    new_visitor = library_manager.create_visitor(visitor_name)
+                    st.success(f"Lankytojas '{visitor_name}' buvo pridėtas su ID {new_visitor.visitor_id}!")
+                else:
+                    st.warning("Visi laukai yra privalomi!")
+
+    if choice == "Priskirti knygą lankytojui":
         st.subheader("Priskirti knygą lankytojui", anchor=False)
 
-        visitor_name = st.text_input("Lankytojo vardas")
+        if library_manager.visitors:
+            visitor_options = {f"{visitor.name} (ID: {visitor.visitor_id}) - paimtos knygos: {len(visitor.books_taken)}": visitor for visitor in library_manager.visitors}
+            selected_visitor_option = st.selectbox("Pasirinkite skaitytoją", list(visitor_options.keys()))
+            selected_visitor = visitor_options[selected_visitor_option]
+        else:
+            st.warning("Skaitytojų sąrašas tuščias")
+
         available_books = [book for book in library_manager.books if book.status == 'laisva']
-        book_options = {f"{book.name} ({book.author}, {book.release_date})": book.id for book in available_books}
-        
-        if book_options:
-            selected_book = st.selectbox("Pasirinkite knygą", list(book_options.keys()))
+        if available_books:
+            book_options = {f"{book.name} ({book.author}, {book.release_date})": book.id for book in available_books}
+            selected_book_option = st.selectbox("Pasirinkite knygą", list(book_options.keys()))
+            selected_book_id = book_options[selected_book_option]
+            selected_book = next(book for book in available_books if book.id == selected_book_id)
         else:
             st.warning("Šiuo metu nėra laisvų knygų.")
 
-        start_date = st.date_input("Pradžios data", value=datetime.today())
+        start_date = st.date_input("Pradžios data", value=datetime.today(), max_value=datetime.today())
 
         if st.button("Priskirti knygą", key="assign_book"):
-            if not visitor_name or not selected_book or not start_date:
-                st.warning("Visi laukai yra privalomi!")
-            else:
-                visitor = next((v for v in library_manager.visitors if v.name == visitor_name), None)
-                if visitor:
-                    book_id = book_options[selected_book]
-                    success = library_manager.assign_book_to_visitor(visitor.visitor_id, book_id, start_date.strftime('%Y-%m-%d'))
+            if selected_visitor and selected_book_id and start_date:
+                if any(book.name == selected_book.name and book.author == selected_book.author and book.release_date == selected_book.release_date for book in selected_visitor.books_taken):
+                    st.warning("Skaitytojas jau yra pasiėmęs šią knygą")
+                elif any(book.status == 'vėluojama' for book in selected_visitor.books_taken):
+                    st.warning("Skaitytojas turi veluojančių knygų, knygų išdavimas negalimas")
+                else:
+                    success = library_manager.assign_book_to_visitor(selected_visitor.visitor_id, selected_book_id, start_date.strftime('%Y-%m-%d'))
                     if success:
-                        st.success(f"Knyga '{selected_book}' priskirta lankytojui '{visitor_name}'!")
+                        st.success(f"Knyga '{selected_book_option}' priskirta lankytojui '{selected_visitor.name}'!")
                     else:
                         st.warning("Nepavyko priskirti knygos! Patikrinkite lankytojo vardą ir knygos būklę.")
-                else:
-                    st.warning("Nepavyko rasti lankytojo su šiuo vardu. Patikrinkite įvestą vardą.")
+            else:
+                st.warning("Visi laukai yra privalomi!")
 
     overdue_books = library_manager.check_overdue_books()
     if overdue_books:
