@@ -2,7 +2,7 @@ import pickle
 import os
 from classes.visitor_data import Visitor
 class VisitorManager:
-    def __init__(self, visitors_file_path='ca_tarpinis_atsiskaitymas/data/visitor_list.pkl'):
+    def __init__(self, visitors_file_path):
         self.visitors_file_path = visitors_file_path
         self.visitors = self.load_visitors()
         

@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
 from classes.book import Book
-from classes.visitor_data import Visitor
 from metodai.library_manager import LibraryManager
 from datetime import datetime
 from classes.librarian_data import Librarian
+from time import sleep
+
 
 lib_admin = Librarian() 
 st.markdown("<style> .stMainBlockContainer {min-width: 1000px; text-align: center;}</style>", unsafe_allow_html=True)
@@ -48,7 +49,7 @@ def run(library_manager):
         st.subheader("📖 Knygų sąrašas", anchor=False)
         books = library_manager.list_books()
         menu1 = st.radio("Kokį veiksmą norite atlikti?", ["Visos knygos", "Paimtos knygos", "Vėluojančios knygos"], horizontal=True)
-        if menu1 == "Visos knygos":
+        if menu1 == "Visos knygos":           
             st.subheader("Visos knygos", anchor=False)
             if books: 
                 book_data = {
@@ -174,13 +175,19 @@ def run(library_manager):
             year = st.number_input("Įveskite leidybos metus", min_value=1800, max_value=2024,value=None, placeholder="Įveskite metus nuo 1800 iki 2024", step=None)
             if st.button("🗑️ Ištrinti pagal metus", key="delete_by_year_btn"):
                 count = library_manager.dlt_books_year(year)
-                st.success(f"Ištrinta {count} knygų, kurios buvo išleistos iki {year} metų.")
+                if count > 0:
+                    st.success(f"Ištrinta {count} knygų, kurios buvo išleistos iki {year} metų.")
+                if count == 0:
+                    st.error(f"{year} metų knygos nebuvo ištirntos:\na. Visos yra paimtos\nb. {year} metų knygų bibliotekoje nėra ")
 
         elif delete_by == "Autorius":
             author = st.text_input("Įveskite autorių")
             if st.button("🗑️ Ištrinti pagal autorių", key="delete_by_author_btn"):
                 count = library_manager.dlt_books_author(author)
-                st.success(f"Ištrinta {count} knygų autoriaus {author}.")
+                if count > 0:
+                    st.success(f"Ištrinta {count} knygų autoriaus {author}.")
+                if count == 0:
+                     st.error(f"{author} autoriaus knygos nebuvo ištirntos:\na. Visos yra paimtos\nb. {author} autoriaus knygų bibliotekoje nėra ")
 
         st.subheader("Ištrintų knygų sąrašas", anchor=False)
         dlt_books = library_manager.dlt_list_books()
@@ -320,11 +327,32 @@ def run(library_manager):
                 st.warning("Visi laukai yra privalomi!")
 
 
-        overdue_books = library_manager.check_overdue_books()
-        if overdue_books:
-            st.warning(f"Šios knygos yra vėluojamos: {[book.name for book in overdue_books]}")
+        
+# run(library_manager)            
+if 'login' not in st.session_state:
+    st.session_state['login'] = False
 
-    
-run(library_manager)
-if st.button("Atgal į pagrindinį", key="63158617_knvnkvnklankv", icon=":material/undo:"):
+if st.session_state['login'] == True:
+    run(library_manager)
+    if st.button("Atsijungti"):
+        st.success(f"Sėkmingai atsisijungėte {lib_admin.lib_name}")
+        sleep(0.5)
+        st.session_state['login'] = False
+        st.rerun()
+else:
+    if st.button("Atgal į pagrindinį", key="63158617_knvnkvnklankv", icon=":material/undo:"):
         st.switch_page("main.py")
+    with st.form(key= 'my_form'):
+        
+        st.subheader("Darbuotojo prisijungimas", anchor=False)
+        ent_lib_user_name = st.text_input("Prisijungimo vardas", autocomplete=None)
+        ent_lib_password = st.text_input("Slaptažodis", type='password', autocomplete=None)
+        if st.form_submit_button("Prisijungti"):
+            if (ent_lib_user_name == lib_admin.lib_user_name and ent_lib_password == lib_admin.lib_password):
+                st.success(f"Sėkmingai prisijungėte {lib_admin.lib_name}")
+                sleep(0.5)
+                st.session_state['login'] = True
+                st.rerun()      
+            else:
+                st.warning("Netinkami prisijungimo duomenys! Bandykite dar kartą.")
+                st.session_state['login'] = False    

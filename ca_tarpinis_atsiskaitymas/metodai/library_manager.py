@@ -5,15 +5,15 @@ from metodai.visitor_manager import VisitorManager
 from datetime import datetime, timedelta
 
 class LibraryManager:
-    def __init__(self, file_path='ca_tarpinis_atsiskaitymas/data/books.pkl', 
-                 deleted_file_path='ca_tarpinis_atsiskaitymas/data/deleted_books.pkl', 
-                 visitors_file_path='ca_tarpinis_atsiskaitymas/data/visitor_list.pkl'):
-        self.data_dir = 'ca_tarpinis_atsiskaitymas/data'
-        self.file_path = file_path
-        self.deleted_file_path = deleted_file_path
-        self.visitors_file_path = visitors_file_path
-        self.visitor_manager = VisitorManager(visitors_file_path)
-        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
+    def __init__(self, data_dir = 'ca_tarpinis_atsiskaitymas/data/',
+                  file_path='books.pkl', 
+                 deleted_file_path='deleted_books.pkl', 
+                 visitors_file_path='visitor_list.pkl'):
+        self.data_dir = data_dir
+        self.file_path = data_dir + file_path
+        self.deleted_file_path = data_dir + deleted_file_path
+        self.visitor_manager = VisitorManager(data_dir + visitors_file_path)
+        self.ensure_data_directory()
         self.books = self.load_books()
         self.deleted_books = self.load_dlt_books()
         self.start_id = 20240000  # Custom ID number
@@ -70,16 +70,16 @@ class LibraryManager:
         return [book for book in self.books if author.lower() in book.author.lower()]
 
     def dlt_books_year(self, year):
-        deleted_books = [book for book in self.books if int(book.release_date) <= year]
-        self.books = [book for book in self.books if int(book.release_date) > year]
+        deleted_books = [book for book in self.books if int(book.release_date) <= year and book.status == 'laisva']
+        self.books = [book for book in self.books if not (int(book.release_date) <= year and book.status == 'laisva')]
         self.deleted_books.extend(deleted_books)
         self.save_books()
         self.save_dlt_books()
         return len(deleted_books)
 
     def dlt_books_author(self, author):
-        deleted_books = [book for book in self.books if author.lower() in book.author.lower()]
-        self.books = [book for book in self.books if author.lower() not in book.author.lower()]
+        deleted_books = [book for book in self.books if author.lower() in book.author.lower() and book.status == 'laisva']
+        self.books = [book for book in self.books if not (author.lower() in book.author.lower() and book.status == 'laisva')]
         self.deleted_books.extend(deleted_books)
         self.save_books()
         self.save_dlt_books()
@@ -110,16 +110,7 @@ class LibraryManager:
         self.save_dlt_books()
         return restored_count
     
-    def check_overdue_books(self):
-        overdue_books = []
-        for book in self.books:
-            if book.status == 'paimta':
-                loan_duration = (datetime.today() - datetime.strptime(book.start_date, '%Y-%m-%d')).days
-                if loan_duration > 20:
-                    book.status = 'vėluojama'
-                    overdue_books.append(book)
-        self.save_books()
-        return overdue_books
+
     
     # HUGE PROBLEM --- > SOLVED :))))))
 
@@ -127,9 +118,9 @@ class LibraryManager:
         skaitytojas = self.visitor_manager.get_visitor_by_id(visitor_id)
         knyga = next((b for b in self.books if b.id == book_id), None)
         if isinstance(start_date, str):
-            start_date = datetime.strptime(start_date, '%Y-%m-%d') 
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
         if skaitytojas and knyga and knyga.status == 'laisva':
-            if start_date < datetime.now():
+            if start_date < (datetime.now() - timedelta(days=20)):
                 knyga.status = 'vėluojama'
             else:
                 knyga.status = 'paimta'
