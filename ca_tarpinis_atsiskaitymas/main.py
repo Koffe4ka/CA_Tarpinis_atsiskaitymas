@@ -18,4 +18,4 @@ with col1:
         
 with col2:
     if st.button("Aš esu Skaitytojas", key="skaityt", icon=":material/person:"):
-        st.switch_page("pages/visitor_login.py")
+        st.switch_page("pages/visitor.py")

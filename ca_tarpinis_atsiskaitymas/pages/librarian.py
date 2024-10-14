@@ -343,7 +343,6 @@ else:
     if st.button("Atgal į pagrindinį", key="63158617_knvnkvnklankv", icon=":material/undo:"):
         st.switch_page("main.py")
     with st.form(key= 'my_form'):
-        
         st.subheader("Darbuotojo prisijungimas", anchor=False)
         ent_lib_user_name = st.text_input("Prisijungimo vardas", autocomplete=None)
         ent_lib_password = st.text_input("Slaptažodis", type='password', autocomplete=None)

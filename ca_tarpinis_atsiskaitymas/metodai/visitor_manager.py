@@ -24,10 +24,16 @@ class VisitorManager:
                 return pickle.load(file)
         except EOFError:
             return []
+        except Exception as e:
+            print(f"Error loading visitors: {e}")
+            return []
 
     def save_visitors(self):
-        with open(self.visitors_file_path, 'wb') as file:
-            pickle.dump(self.visitors, file)
+        try:
+            with open(self.visitors_file_path, 'wb') as file:
+                pickle.dump(self.visitors, file)
+        except Exception as e:
+            print(f"Error saving visitors: {e}")
 
     def list_visitors(self):
         return self.visitors
@@ -41,7 +47,7 @@ class VisitorManager:
         return False
 
     def get_next_visitor_id(self):
-        return len(self.visitors) + 1
+        return max((v.visitor_id for v in self.visitors), default=0) + 1
     
     def get_visitor_by_id(self, visitor_id):
         for visitor in self.visitors:
